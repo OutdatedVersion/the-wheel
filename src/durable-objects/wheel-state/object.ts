@@ -11,6 +11,9 @@ export class WheelState extends DurableObject {
    */
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
+
+    ctx.storage.sql.exec(``);
+    // this.#storage?.exec();
   }
 
   /**

@@ -18,6 +18,6 @@ router.get('/', async (ctx) => {
 });
 
 // export our durable objects so Workers knows where to find them
-export { WheelState } from './durable-objects/wheel-state';
-// export the Workers compatible router to handle requests
+export { WheelState } from './durable-objects/wheel-state/object';
+// export the router, which is Workers compatible, to handle requests
 export default router satisfies ExportedHandler<Env>;
