@@ -1,4 +1,12 @@
+import { z } from 'zod';
 import { KnownWheelEvent, RecordedWheelEvent } from './model';
+
+const WheelEventsRowSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  data: z.string(),
+  created_at: z.number(),
+});
 
 export class EventRepository {
   constructor(private sql: SqlStorage) {}
@@ -16,15 +24,36 @@ export class EventRepository {
 
   async loadEvents(): Promise<RecordedWheelEvent[]> {
     const resp = this.sql.exec('SELECT id, name, data, created_at FROM wheel_events ORDER BY created_at ASC;');
-    const events: RecordedWheelEvent[] = [];
 
+    const events: RecordedWheelEvent[] = [];
     while (true) {
       const n = resp.next();
       if (n.done) {
         break;
       }
-      const row = n.value;
-      console.log(row);
+
+      const result = await WheelEventsRowSchema.safeParseAsync(n.value);
+      if (!result.success) {
+        // TODO
+        console.error('malformed row', result.error);
+        continue;
+      }
+
+      let data;
+      try {
+        data = JSON.parse(result.data.data);
+      } catch (error) {
+        // TODO
+        console.error('failed to parse event data', error);
+        continue;
+      }
+
+      events.push({
+        id: result.data.id,
+        name: result.data.name as KnownWheelEvent['name'],
+        data: data as KnownWheelEvent['data'],
+        createdAt: new Date(result.data.created_at),
+      });
     }
 
     return events;
