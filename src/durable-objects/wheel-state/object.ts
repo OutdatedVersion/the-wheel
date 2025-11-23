@@ -23,6 +23,10 @@ export class WheelState extends DurableObject {
     });
   }
 
+  public async listEvents(): Promise<RecordedWheelEvent[]> {
+    return this.#events;
+  }
+
   public async sayHello(name: string): Promise<string> {
     const event: AddEntryWheelEvent = {
       name: 'AddEntry',

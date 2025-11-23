@@ -1,6 +1,12 @@
 import { Hono } from 'hono';
 
-const router = new Hono<{ Bindings: Env }>();
+const router = new Hono<{ Bindings: Env }>().basePath('/api');
+
+router.get('/:name/events', async (ctx) => {
+  const obj = await ctx.env.WHEEL_STATE.getByName(ctx.req.param('name'));
+
+  return ctx.json({ events: await obj.listEvents() });
+});
 
 router.get('/', async (ctx) => {
   // Create a stub to open a communication channel with the Durable Object
