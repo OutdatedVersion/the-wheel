@@ -8,6 +8,14 @@ router.get('/:name/events', async (ctx) => {
   return ctx.json({ events: await obj.listEvents() });
 });
 
+router.delete('/:name', async (ctx) => {
+  const obj = await ctx.env.WHEEL_STATE.getByName(ctx.req.param('name'));
+
+  await obj.purge();
+
+  return new Response(null, { status: 204 });
+});
+
 router.get('/', async (ctx) => {
   // Create a stub to open a communication channel with the Durable Object
   // instance named "foo".

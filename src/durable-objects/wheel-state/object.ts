@@ -24,6 +24,11 @@ export class WheelState extends DurableObject {
     });
   }
 
+  public async purge(): Promise<void> {
+    this.#events = [];
+    this.ctx.storage.deleteAll();
+  }
+
   public async listEvents(): Promise<RecordedWheelEvent[]> {
     return this.#events;
   }
