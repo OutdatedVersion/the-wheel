@@ -20,7 +20,7 @@ router.get('/', async (ctx) => {
   // the remote Durable Object instance.
   const greeting = await stub.sayHello('world');
 
-  return new Response(greeting);
+  return new Response(null, { status: 201 });
 });
 
 // export our durable objects so Workers knows where to find them
