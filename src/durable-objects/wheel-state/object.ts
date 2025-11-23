@@ -7,6 +7,8 @@ export class WheelState extends DurableObject {
   #events: RecordedWheelEvent[] = [];
   #eventsRepo: EventRepository;
 
+  #entries = new Set<string>();
+
   /**
    * The constructor is invoked once upon creation of the Durable Object, i.e. the first call to
    * 	`DurableObjectStub::get` for a given identifier (no-op constructors can be omitted)
@@ -21,6 +23,8 @@ export class WheelState extends DurableObject {
     ctx.blockConcurrencyWhile(async () => {
       await this.#eventsRepo.init();
       this.#events = await this.#eventsRepo.loadEvents();
+
+      // TODO: replay events to reconstruct entries
     });
   }
 
@@ -33,15 +37,23 @@ export class WheelState extends DurableObject {
     return this.#events;
   }
 
-  public async sayHello(name: string): Promise<string> {
+  public async listEntries(): Promise<string[]> {
+    return Array.from(this.#entries);
+  }
+
+  public async addEntry(label: string): Promise<void> {
+    if (this.#entries.has(label)) {
+      // TODO ?
+      return;
+    }
+
     const event: AddEntryWheelEvent = {
       name: 'AddEntry',
-      data: { label: name },
+      data: { label },
       createdAt: new Date(),
     };
 
     this.#events.push(await this.#eventsRepo.recordEvent(event));
-
-    return `Hello, ${name}!`;
+    this.#entries.add(label);
   }
 }

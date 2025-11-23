@@ -16,17 +16,13 @@ router.delete('/:name', async (ctx) => {
   return new Response(null, { status: 204 });
 });
 
-router.get('/', async (ctx) => {
-  // Create a stub to open a communication channel with the Durable Object
-  // instance named "foo".
-  //
-  // Requests from all Workers to the Durable Object instance named "foo"
-  // will go to a single remote Durable Object instance.
-  const stub = ctx.env.WHEEL_STATE.getByName('foo');
+router.post('/:name/entries', async (ctx) => {
+  // TODO: validate
+  const { label } = await ctx.req.json();
 
-  // Call the `sayHello()` RPC method on the stub to invoke the method on
-  // the remote Durable Object instance.
-  const greeting = await stub.sayHello('world');
+  const obj = ctx.env.WHEEL_STATE.getByName(ctx.req.param('name'));
+
+  await obj.addEntry(label);
 
   return new Response(null, { status: 201 });
 });
