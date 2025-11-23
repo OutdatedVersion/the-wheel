@@ -20,6 +20,7 @@ export class WheelState extends DurableObject {
 
     ctx.blockConcurrencyWhile(async () => {
       await this.#eventsRepo.init();
+      this.#events = await this.#eventsRepo.loadEvents();
     });
   }
 
