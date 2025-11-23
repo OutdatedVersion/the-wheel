@@ -1,7 +1,12 @@
 import { DurableObject } from 'cloudflare:workers';
+import { AddEntryWheelEvent, RecordedWheelEvent } from './event/model';
+import { EventRepository } from './event/repository';
 
 /** A Durable Object's behavior is defined in an exported Javascript class */
 export class WheelState extends DurableObject {
+  #events: RecordedWheelEvent[] = [];
+  #eventsRepo: EventRepository;
+
   /**
    * The constructor is invoked once upon creation of the Durable Object, i.e. the first call to
    * 	`DurableObjectStub::get` for a given identifier (no-op constructors can be omitted)
@@ -11,19 +16,22 @@ export class WheelState extends DurableObject {
    */
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
+    this.#eventsRepo = new EventRepository(ctx.storage.sql);
 
-    ctx.storage.sql.exec(``);
-    // this.#storage?.exec();
+    ctx.blockConcurrencyWhile(async () => {
+      await this.#eventsRepo.init();
+    });
   }
 
-  /**
-   * The Durable Object exposes an RPC method sayHello which will be invoked when when a Durable
-   *  Object instance receives a request from a Worker via the same method invocation on the stub
-   *
-   * @param name - The name provided to a Durable Object instance from a Worker
-   * @returns The greeting to be sent back to the Worker
-   */
-  async sayHello(name: string): Promise<string> {
+  public async sayHello(name: string): Promise<string> {
+    const event: AddEntryWheelEvent = {
+      name: 'AddEntry',
+      data: { label: name },
+      createdAt: new Date(),
+    };
+
+    this.#events.push(await this.#eventsRepo.recordEvent(event));
+
     return `Hello, ${name}!`;
   }
 }

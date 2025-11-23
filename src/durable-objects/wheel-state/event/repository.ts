@@ -43,7 +43,7 @@ export class EventRepository {
       throw new Error('malformed row returned');
     }
 
-    const recorded = { ...event, id: row.id };
+    const recorded = { id: row.id, ...event };
     return recorded;
   }
 }
