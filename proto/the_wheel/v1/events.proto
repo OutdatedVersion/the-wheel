@@ -1,0 +1,25 @@
+syntax = "proto3";
+package the_wheel.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+message AddEntryEventData {
+  string label = 1;
+}
+
+message RemoveEntryEventData {
+  string label = 1;
+}
+
+message WheelEvent {
+  string id = 1;
+  google.protobuf.Timestamp created_at = 2;
+
+  oneof event_data {
+    option (buf.validate.oneof).required = true;
+
+    AddEntryEventData add_entry = 10;
+    RemoveEntryEventData remove_entry = 11;
+  };
+}
