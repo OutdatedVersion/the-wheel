@@ -1,11 +1,14 @@
 import { Hono } from 'hono';
+import { toJson } from '@bufbuild/protobuf';
+import { WheelEventSchema } from './gen/the_wheel/v1/events_pb';
 
 const router = new Hono<{ Bindings: Env }>().basePath('/api');
 
 router.get('/:name/events', async (ctx) => {
   const obj = await ctx.env.WHEEL_STATE.getByName(ctx.req.param('name'));
+  const events = await obj.listEvents();
 
-  return ctx.json({ events: await obj.listEvents() });
+  return ctx.json({ events: events.map((e) => toJson(WheelEventSchema, e)) });
 });
 
 router.delete('/:name', async (ctx) => {
