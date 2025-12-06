@@ -12,14 +12,17 @@ message RemoveEntryEventData {
   string label = 1;
 }
 
-message WheelEvent {
-  string id = 1;
-  google.protobuf.Timestamp created_at = 2;
-
+message WheelEventData {
   oneof event_data {
     option (buf.validate.oneof).required = true;
 
-    AddEntryEventData add_entry = 10;
-    RemoveEntryEventData remove_entry = 11;
+    AddEntryEventData add_entry = 1;
+    RemoveEntryEventData remove_entry = 2;
   };
+}
+
+message WheelEvent {
+  string id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  WheelEventData event_data = 3;
 }
