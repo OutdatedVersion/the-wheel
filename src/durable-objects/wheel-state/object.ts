@@ -1,10 +1,12 @@
 import { DurableObject } from 'cloudflare:workers';
-import { AddEntryWheelEvent, RecordedWheelEvent } from './event/model';
 import { EventRepository } from './event/repository';
+import { WheelEvent } from '../../gen/the_wheel/v1/events_pb';
+import { AddEntryEventDataSchema, WheelEventDataSchema, WheelEventSchema } from '../../gen/the_wheel/v1/events_pb';
+import { create } from '@bufbuild/protobuf';
 
 /** A Durable Object's behavior is defined in an exported Javascript class */
 export class WheelState extends DurableObject {
-  #events: RecordedWheelEvent[] = [];
+  #events: WheelEvent[] = [];
   #eventsRepo: EventRepository;
 
   #entries = new Set<string>();
@@ -33,7 +35,7 @@ export class WheelState extends DurableObject {
     this.ctx.storage.deleteAll();
   }
 
-  public async listEvents(): Promise<RecordedWheelEvent[]> {
+  public async listEvents(): Promise<WheelEvent[]> {
     return this.#events;
   }
 
@@ -47,13 +49,14 @@ export class WheelState extends DurableObject {
       return;
     }
 
-    const event: AddEntryWheelEvent = {
-      name: 'AddEntry',
-      data: { label },
-      createdAt: new Date(),
-    };
+    const eventData = create(WheelEventDataSchema, {
+      eventData: {
+        case: 'addEntry',
+        value: create(AddEntryEventDataSchema, { label }),
+      },
+    });
 
-    this.#events.push(await this.#eventsRepo.recordEvent(event));
+    this.#events.push(await this.#eventsRepo.recordEvent(eventData));
     this.#entries.add(label);
   }
 }
