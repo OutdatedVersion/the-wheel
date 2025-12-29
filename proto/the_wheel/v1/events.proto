@@ -13,6 +13,9 @@ message RemoveEntryEventData {
 }
 
 message WheelEventData {
+  // note: this field isn't embedded directly into `WheelEvent` as we need a distinct
+  //       `message` to pass into the fromBinary/toBinary [de]serialization helpers.
+
   oneof event_data {
     option (buf.validate.oneof).required = true;
 
@@ -22,7 +25,9 @@ message WheelEventData {
 }
 
 message WheelEvent {
-  string id = 1;
+  // UUID v4
+  string id = 1 [(buf.validate.field).string.uuid = true];
   google.protobuf.Timestamp created_at = 2;
+  // Data specific to the event variant
   WheelEventData event_data = 3;
 }
