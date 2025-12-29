@@ -22,7 +22,7 @@ message WheelEventData {
 
     AddEntryEventData add_entry = 1;
     RemoveEntryEventData remove_entry = 2;
-  };
+  }
 }
 
 message WheelEvent {
