@@ -1,23 +1,36 @@
 import { Hono } from 'hono';
+import { toJson } from '@bufbuild/protobuf';
+import { WheelEventSchema } from './gen/the_wheel/v1/events_pb';
 
-const router = new Hono<{ Bindings: Env }>();
+const router = new Hono<{ Bindings: Env }>().basePath('/api');
 
-router.get('/', async (ctx) => {
-  // Create a stub to open a communication channel with the Durable Object
-  // instance named "foo".
-  //
-  // Requests from all Workers to the Durable Object instance named "foo"
-  // will go to a single remote Durable Object instance.
-  const stub = ctx.env.WHEEL_STATE.getByName('foo');
+router.get('/:name/events', async (ctx) => {
+  const obj = await ctx.env.WHEEL_STATE.getByName(ctx.req.param('name'));
+  const events = await obj.listEvents();
 
-  // Call the `sayHello()` RPC method on the stub to invoke the method on
-  // the remote Durable Object instance.
-  const greeting = await stub.sayHello('world');
+  return ctx.json({ events: events.map((e) => toJson(WheelEventSchema, e)) });
+});
 
-  return new Response(greeting);
+router.delete('/:name', async (ctx) => {
+  const obj = await ctx.env.WHEEL_STATE.getByName(ctx.req.param('name'));
+
+  await obj.purge();
+
+  return new Response(null, { status: 204 });
+});
+
+router.post('/:name/entries', async (ctx) => {
+  // TODO: validate
+  const { label } = await ctx.req.json();
+
+  const obj = ctx.env.WHEEL_STATE.getByName(ctx.req.param('name'));
+
+  await obj.addEntry(label);
+
+  return new Response(null, { status: 201 });
 });
 
 // export our durable objects so Workers knows where to find them
-export { WheelState } from './durable-objects/wheel-state';
-// export the Workers compatible router to handle requests
+export { WheelState } from './durable-objects/wheel-state/object';
+// export the router, which is Workers compatible, to handle requests
 export default router satisfies ExportedHandler<Env>;
