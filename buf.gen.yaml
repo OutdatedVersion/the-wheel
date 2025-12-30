@@ -1,0 +1,13 @@
+version: v2
+managed:
+  enabled: true
+plugins:
+  - remote: buf.build/bufbuild/es:v2.10.1
+    out: src/gen
+    include_imports: true
+    # see https://github.com/bufbuild/protobuf-es/blob/50d22811258bcdbcacf6d34cbf14e5e75e386f63/packages/protoc-gen-es/README.md#plugin-options
+    opt:
+      - target=ts
+      - import_extension=.js
+inputs:
+  - directory: proto

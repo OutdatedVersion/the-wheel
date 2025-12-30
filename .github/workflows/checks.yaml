@@ -1,0 +1,26 @@
+name: Checks
+
+permissions:
+  pull-requests: write
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  buf:
+    name: Buf
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: jdx/mise-action@v3
+
+      - uses: bufbuild/buf-action@v1
+        # see https://buf.build/docs/bsr/ci-cd/github-actions/#parameters
+        with:
+          # note: setup is skipped as `mise-action` installs buf
+          input: proto/
